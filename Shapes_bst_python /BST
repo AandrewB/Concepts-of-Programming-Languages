@@ -1,0 +1,47 @@
+class Node:
+    def __init__(self, value):
+        self.value = value
+        self.left = None
+        self.right = None
+
+class BST:
+    def __init__(self, keyFunction):
+            self.key = keyFunction
+            self.root = None
+            self._size = 0
+
+    def insert(self, item):
+        k = self.key(item)
+        if self.root is None:
+            self.root = Node(item)
+            self._size += 1
+            return
+        else: 
+            current = self.root
+            while True:
+                 current_key = self.key(current.value)
+                 if k < current_key:
+                      if current.left is None:
+                           current.left = Node(item)
+                           self._size += 1
+                           return
+                      else: current = current.left
+                 else: 
+                    if current.right is None:
+                         current.right = Node(item)
+                         self._size += 1
+                         return
+                    else: current = current.right 
+
+    def inorder(self):
+        def _inorder(node):
+            if node is None:
+                return 
+            yield from _inorder(node.left)
+            yield node.value
+            yield from _inorder(node.right)
+        yield from _inorder(self.root)
+
+    def __len__(self):
+         return self._size
+    
