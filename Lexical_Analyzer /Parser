@@ -1,0 +1,260 @@
+import java.util.List;
+import java.util.ArrayList;
+
+public class Parser {
+    private LexicalAnalyzer analyzer;
+    private Token nextToken;
+
+    public Parser(LexicalAnalyzer lexAnalyzer){
+        this.analyzer = lexAnalyzer;
+        nextToken = analyzer.getToken();
+    }
+
+    public void advance(){
+        nextToken = analyzer.getToken();
+
+    }
+
+    public void match(TokenType expectedType){
+        if (nextToken.getType() == expectedType){
+            advance();
+        }
+        else throw new IllegalArgumentException("Expected " + expectedType + ", but found:" + nextToken.getType() + " " + nextToken.getLexeme() + " " + nextToken.getRow() + " " + nextToken.getCol());
+        
+    }
+    public Program parseProgram(){
+        List<Statement> stmts = parseStmtList();
+
+        if (nextToken.getType() != TokenType.EOS){
+            throw new IllegalArgumentException("Expected end of program, found: " + nextToken.getType());
+        }
+
+        return new Program(stmts);
+    }
+
+    public List<Statement> parseStmtList(){
+        List<Statement> list = new ArrayList<>();
+
+        while (nextToken.getType() == TokenType.LET || nextToken.getType() == TokenType.DISPLAY || nextToken.getType() == TokenType.INPUT || nextToken.getType() == TokenType.IF || nextToken.getType() == TokenType.WHILE|| nextToken.getType() == TokenType.FOR){
+            Statement stmt = parseStatement();
+            list.add(stmt);
+        }
+        
+        return list;
+    }
+
+    public Statement parseStatement(){
+        TokenType type = nextToken.getType();
+        
+        if (type == TokenType.LET) {
+            return parseAssnStmt();
+        }
+        
+        else if (type == TokenType.DISPLAY) {
+            return parseDisplayStmt();
+        }
+
+        else if (type == TokenType.INPUT) {
+            return parseInputStmt();
+        }
+
+         else if (type == TokenType.IF) {
+            return parseIfStatement();
+        }
+
+        else if (type == TokenType.WHILE) {
+            return parseWhileStatement();
+        }
+
+        else if (type == TokenType.FOR) {
+            return parseForStatement();
+        }
+
+
+
+        else {
+            throw new IllegalArgumentException("Invalid statement start: " + nextToken.getType());
+        }
+    }
+
+   public Statement parseAssnStmt() {
+    match(TokenType.LET);
+
+    if (nextToken.getType() != TokenType.ID) {
+        throw new IllegalArgumentException(
+            "Expected identifier after 'let' at row " + nextToken.getRow() + ", col " + nextToken.getCol());
+    }
+
+    String varName = nextToken.getLexeme();
+    match(TokenType.ID);
+    match(TokenType.ASSIGN);
+    Expression expr = expression();
+    match(TokenType.EOL);
+
+    return new AssignmentStatement(varName, expr);
+}
+
+public Statement parseDisplayStmt() {
+    match(TokenType.DISPLAY);
+
+    if (nextToken.getType() != TokenType.ID) {
+        throw new IllegalArgumentException(
+            "Expected identifier after 'display' at row " + nextToken.getRow() + ", col " + nextToken.getCol());
+    }
+    String varName = nextToken.getLexeme();
+    match(TokenType.ID);
+    match(TokenType.EOL);
+
+    return new DisplayStatement(varName);
+}
+
+public Statement parseInputStmt() {
+    match(TokenType.INPUT);
+
+    if (nextToken.getType() != TokenType.ID) {
+        throw new IllegalArgumentException(
+            "Expected identifier after 'input' at row " + nextToken.getRow() + ", col " + nextToken.getCol());
+    }
+    String varName = nextToken.getLexeme();
+    match(TokenType.ID);
+    match(TokenType.EOL);
+
+    return new InputStatement(varName);
+}
+
+public List<Statement> parseStatementBlock() {
+    match(TokenType.INDENT);
+    List<Statement> stmts = parseStmtList();
+    match(TokenType.DEDENT);
+    return stmts;
+    }
+
+public Statement parseIfStatement() {
+    match(TokenType.IF);
+    Expression mainCond = parseRelationalExpression();
+    match(TokenType.COLON);
+    match(TokenType.EOL);
+    List<Statement> mainBlock = parseStatementBlock();
+
+    List<Expression> elifConds = new ArrayList<>();
+    List<List<Statement>> elifBlocks = new ArrayList<>();
+
+    while (nextToken.getType() == TokenType.ELIF) {
+        match(TokenType.ELIF);
+        Expression elifCond = parseRelationalExpression();
+        match(TokenType.COLON);
+        match(TokenType.EOL);
+        List<Statement> elifBlock = parseStatementBlock();
+            elifConds.add(elifCond);
+            elifBlocks.add(elifBlock);
+            }
+    
+        List<Statement> elseBlock = null;
+        if (nextToken.getType() == TokenType.ELSE) {
+            match(TokenType.ELSE);
+            match(TokenType.COLON);
+            match(TokenType.EOL);
+            elseBlock = parseStatementBlock();
+        }
+    
+            return new IfStatement(mainCond, mainBlock, elifConds, elifBlocks, elseBlock);
+    }
+
+public Statement parseWhileStatement(){
+    match(TokenType.WHILE);
+    Expression condition = parseRelationalExpression();
+    match(TokenType.COLON);
+    match(TokenType.EOL);
+    List<Statement> body = parseStatementBlock();
+
+    return new WhileStatement(condition, body);
+
+}
+
+public Statement parseForStatement() {
+    match(TokenType.FOR);
+
+    if (nextToken.getType() != TokenType.ID) {
+        throw new IllegalArgumentException("Expected loop variable after 'for' at row " + nextToken.getRow() + ", col " + nextToken.getCol());
+    }
+        String varName = nextToken.getLexeme();
+        match(TokenType.ID);
+        match(TokenType.IN);
+        Expression startExpr = expression();
+        match(TokenType.DOT_DOT);
+        Expression endExpr = expression();
+        match(TokenType.COLON);
+        match(TokenType.EOL);
+        List<Statement> body = parseStatementBlock();
+
+        return new ForStatement(varName, startExpr, endExpr, body);
+    }
+
+
+    public Expression parse(){
+        Expression root = expression();
+        if (nextToken.getType() != TokenType.EOS) {
+            throw new IllegalArgumentException("Unexpected extra input");
+        }
+        return root;
+    }
+
+    public Expression expression(){
+        Expression left = term();
+        while (nextToken.getType() == TokenType.ADD ||nextToken.getType() == TokenType.SUB) {
+            String op = nextToken.getLexeme();
+            match(nextToken.getType());
+            Expression right = term();
+            left = new BinaryOp(left, op, right);
+        }
+        return left;
+    }
+
+    public Expression parseRelationalExpression(){
+        Expression left = expression();
+        TokenType opType = nextToken.getType();
+        if (opType != TokenType.LT && opType != TokenType.LE && opType != TokenType.GT && opType != TokenType.GE && opType != TokenType.EQ && opType != TokenType.NE) {
+            throw new IllegalArgumentException("Expected relational operator at row " + nextToken.getRow() + ", col " + nextToken.getCol()+ " but found " + opType);
+        }
+        match(opType);
+        Expression right = expression();
+        return new RelationalExpression(left, right, opType);
+    }
+
+    public Expression term(){
+        Expression left = factor();
+        while (nextToken.getType() == TokenType.MUL || nextToken.getType() == TokenType.DIV) {
+            String op = nextToken.getLexeme();
+            match(nextToken.getType());
+            Expression right = factor();
+            left = new BinaryOp(left, op, right);
+        }
+        return left;
+    }
+
+    public Expression factor(){
+        if (nextToken.getType() == TokenType.LPAREN ) {
+            match(nextToken.getType());
+            Expression e = expression();
+            match(TokenType.RPAREN);
+            return e;
+        }
+        else if (nextToken.getType() == TokenType.SUB ) {
+            match(TokenType.SUB);
+            Expression e = expression();
+            return new UnaryMinus(e);
+        }
+        else if (nextToken.getType() == TokenType.INT_LIT ) {
+            int value = Integer.parseInt(nextToken.getLexeme());
+            match(TokenType.INT_LIT);
+            return new Number(value);
+        }
+        else if (nextToken.getType() == TokenType.ID) {
+            String varName = nextToken.getLexeme();
+            match(TokenType.ID);
+            return new Variable(varName);
+        }
+        else throw new IllegalArgumentException("Unexpected token " + nextToken.getType() + " at row " + nextToken.getRow() + ", col " + nextToken.getCol());
+    }
+
+}
