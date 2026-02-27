@@ -1,0 +1,21 @@
+package shapes;
+
+public class Rectangle extends Shape {
+    double width;
+    double height;
+
+
+    public Rectangle(int identity, String name, double wide, double tall){
+        super(identity, name);
+
+        if(wide <= 0 || tall <= 0){
+            throw new IllegalArgumentException();
+        }
+        width = wide;
+        height = tall;
+    }
+    @Override
+    public double area() {
+        return width * height;
+    }
+}
