@@ -1,0 +1,26 @@
+public class Main {
+    public static void main(String[] args) {
+        EventLogger logger = new EventLogger("events.log");
+        logger.log("Program started");
+
+        FileSystemSim fs = new FileSystemSim(logger);
+
+        User alice = fs.createUser("Alice");
+        User bob = fs.createUser("Bob");
+        fs.createFile("report.txt", "Initial content", alice.getId());
+
+        System.out.println("Alice reads: " + fs.readFile("report.txt", alice.getId()));
+        System.out.println("Bob reads: " + fs.readFile("report.txt", bob.getId()));
+        fs.changePermission("report.txt", alice.getId(), bob.getId(), PermissionType.READ, true);
+
+        System.out.println("Bob reads after permission: " + fs.readFile("report.txt", bob.getId()));
+        fs.writeFile("report.txt", bob.getId(), "Bob tries writing!");
+        fs.changePermission("report.txt", alice.getId(), bob.getId(), PermissionType.WRITE, true);
+        fs.writeFile("report.txt", bob.getId(), "Bob UPDATED the file!");
+        System.out.println("Final file content: " + fs.readFile("report.txt", alice.getId()));
+        fs.simulateConcurrentWrite("report.txt",
+                alice.getId(), bob.getId(),
+            "Alice writes at same time",
+            "Bob writes at same time");
+    }
+}
