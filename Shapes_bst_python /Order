@@ -1,0 +1,5 @@
+def area(shape):
+    return shape.area()
+
+def perimeter(shape): 
+    return shape.perimeter()
