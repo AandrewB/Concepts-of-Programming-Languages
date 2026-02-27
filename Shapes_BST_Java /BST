@@ -1,0 +1,96 @@
+package tree;
+import java.util.Comparator;
+import java.util.List;
+import java.util.ArrayList;
+import shapes.Shape;
+
+public class BST {
+    Comparator <Shape> cmp;
+    Node root = null;
+    int size = 0;
+
+   private static class Node{
+    Shape value;
+    Node left, right;
+
+    public Node(Shape s){
+        value = s;
+        left = null;
+        right = null;
+
+    }
+}
+
+public BST(Comparator<Shape> s){
+    cmp = s;
+    root = null;
+    size = 0;
+   
+}
+ public List<Shape> toList(){
+        ArrayList<Shape> myArray = new ArrayList<>();
+        inOrder(root, myArray);
+        return myArray; 
+ }
+
+    private void inOrder(Node current,List<Shape> list){
+        if (current == null) {
+            return;
+        }
+        inOrder(current.left, list);
+        list.add(current.value);
+        inOrder(current.right, list);
+       
+
+    }
+
+    
+public void insert(Shape s){
+     if (root == null){
+        Node newNode = new Node(s);
+        root = newNode;
+        size++;
+        return;
+    }
+    Node current = root;
+    while (true) {
+        
+    
+    int c = cmp.compare(s, current.value);
+    if(c < 0){
+        if(current.left == null){
+            Node a = new Node(s);
+            current.left = a;
+            size++;
+            return;
+        }
+        else current = current.left;
+    }
+    else if(c > 0){
+        if(current.right == null){
+            Node a = new Node(s);
+            current.right = a;
+            size++;
+            return;
+        }
+        else current = current.right;
+    }
+    else return;
+}
+}
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
