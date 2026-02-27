@@ -1,0 +1,17 @@
+import java.util.Map;
+
+public class AssignmentStatement extends Statement{
+    String name;
+    Expression expression;
+    public AssignmentStatement(String name, Expression expression){
+        this.name = name;
+        this.expression = expression;
+    }
+
+    @Override
+    public void execute(Map<String, Integer> memory) {
+       int value = expression.evaluate(memory);   
+           memory.put(name, value); 
+        
+    }
+}
