@@ -1,0 +1,103 @@
+package parsing;
+
+import shapes.Circle;
+import shapes.Rectangle;
+import shapes.Shape;
+import shapes.Triangle;
+
+public class ShapeParser {
+    public static class Result{
+        public final Shape parsedShape;
+        public final String errorMessage;
+
+        public Result(Shape parsedShape, String errorMessage){
+             this.parsedShape = parsedShape;
+             this.errorMessage = errorMessage;
+
+        }
+
+        
+    }
+    public Result parseLine(String line, int lineNumber, int nextId){
+        String trimmedLine = line.trim();
+        
+        if (trimmedLine.isEmpty()){
+            return new Result(null, "line " + lineNumber + ": empty line");
+        }
+        String[] tokens = trimmedLine.split("\\s+");
+        String firstToken = tokens[0].toLowerCase();
+        if (!firstToken.equals("triangle") && !firstToken.equals("circle") && !firstToken.equals("rectangle")){
+            return new Result(null, "line " + lineNumber + ": unknown shape " + firstToken);
+        }
+
+        int required = 0;
+        if(firstToken.equals("circle")){
+            required = 1;
+        }
+        else if(firstToken.equals("rectangle")){
+            required = 2;
+        }
+        else if(firstToken.equals("triangle")){
+            required = 3;
+        }
+        int num = required + 1;
+        
+        if(tokens.length != num && firstToken.equals("circle") ){
+            return new Result(null, "Line " + lineNumber + ": " + firstToken + " expected " + required + " number");
+        }
+        if(tokens.length != num && (firstToken.equals("triangle") || firstToken.equals("rectangle"))){
+            return new Result(null, "Line " + lineNumber + ": " + firstToken + " expected " + required + " numbers");
+        }
+        
+
+        if(firstToken.equals("circle")){
+        try {
+        double radius = Double.parseDouble(tokens[1]);
+        if (radius <= 0){
+            return new Result(null, "Line " + lineNumber + ": radius must be > 0");
+        }
+        Circle circle = new Circle(nextId, firstToken, radius);
+        return new Result(circle, null);
+        } catch (NumberFormatException e) {
+           return new Result(null, "Line " + lineNumber + ": expected a number");
+
+        }
+        
+        }
+        else if (firstToken.equals("rectangle")){
+        try {
+        double width = Double.parseDouble(tokens[1]);
+        double height = Double.parseDouble(tokens[2]);
+        if (width <= 0 || height <= 0 ){
+            return new Result(null, "Line " + lineNumber + ": width and height must be > 0");
+        } 
+        Rectangle rectangle = new Rectangle(nextId, firstToken, width, height);
+        return new Result(rectangle, null);
+        } catch (NumberFormatException e) {
+            return new Result(null, "Line " + lineNumber + ": expected 2 numbers");
+        }
+        
+        }
+        else if(firstToken.equals("triangle")){
+        try { 
+        int a = Integer.parseInt(tokens[1]);
+        int b = Integer.parseInt(tokens[2]);
+        int c = Integer.parseInt(tokens[3]);
+        
+        if (a <= 0 || b <= 0 || c <= 0  ){
+            return new Result(null, "Line " + lineNumber + ": all sides must be > 0");
+        } 
+        if (a + b >= c || a + c >= b || b + c >= a){
+            return new Result(null, "Line " + lineNumber + ": invalid triangle sides");
+        }
+        Triangle triangle = new Triangle(nextId, firstToken, a, b, c);
+        return new Result(triangle, null);
+         } catch (NumberFormatException e) {
+            return new Result(null,"Line " + lineNumber + ":expected 3 numbers");
+        }
+        }
+
+        return new Result(null, "Internal parser error");
+
+    }
+}
