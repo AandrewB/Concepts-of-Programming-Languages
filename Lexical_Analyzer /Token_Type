@@ -1,0 +1,6 @@
+public enum TokenType{
+        ADD, SUB, MUL, DIV, LPAREN, RPAREN, INT_LIT, EOS, ID, LET, DISPLAY, INPUT, ASSIGN, EOL, IF, ELIF, ELSE, WHILE, FOR, IN, LE, LT, GE, GT, EQ, NE, COLON, DOT_DOT, INDENT, DEDENT
+        
+} 
+
+
