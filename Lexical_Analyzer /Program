@@ -1,0 +1,19 @@
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class Program {
+    private List<Statement> statementList;
+
+    public Program(List<Statement> statementList){
+        this.statementList = statementList;
+    }
+
+    public void execute(){
+Map<String, Integer> memory = new HashMap<>();
+
+        for (Statement stmt : statementList) {
+            stmt.execute(memory);
+        }
+    }
+}
