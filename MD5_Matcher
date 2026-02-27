@@ -1,0 +1,95 @@
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.stream.Stream;
+import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.io.InputStream;
+
+public class Main {
+
+    public static void main(String[] args) {
+
+        // The directory containing all  files to scan
+        String dirPath = "dataset";
+
+        // The target MD5 hash to search for 
+        String targetMd5 = "d9643115dc80d566d9b985d287451de3";
+        targetMd5 = targetMd5.toLowerCase();  // lowercase for comparison
+
+        // Quick input validation
+        if (targetMd5.length() != 32) {
+            System.out.println("error message");  // invalid hash length
+            return; 
+        }
+
+        // Create a Path object to the dataset directory
+        Path path = Paths.get(dirPath);
+
+        // Check that the dataset folder exists and is a directory
+        if (!Files.isDirectory(path)) {
+            System.out.println("error message");
+            return; 
+        }
+
+        // Walk through all files in the directory tree
+        try (Stream<Path> files = Files.walk(path)) {
+            long totalFiles = 0; 
+
+            // Filter only regular files and collect to a List
+            List<Path> fileList = files.filter(Files::isRegularFile).toList();
+
+            // Loop over each file in the list
+            for (Path p : fileList) {
+                totalFiles++; 
+
+                // Compute the MD5 hash of this file
+                String Md5 = computeMd5(p);
+
+                // Compare the hash to the target MD5
+                if (targetMd5.equals(Md5)) {
+                    System.out.println("Match found " + p);
+                }
+            }
+
+            // After scanning all files, print how many files were scanned
+            System.out.println("Scanned " + totalFiles + " files");
+
+        } catch (NoSuchAlgorithmException e) {
+            System.out.println("error message");
+        } catch (IOException e) {
+            System.out.println("error message");
+        }
+    }
+
+    public static String computeMd5(Path file) throws IOException, NoSuchAlgorithmException {
+        // Create a MessageDigest instance for MD5 hashing
+        MessageDigest message = MessageDigest.getInstance("MD5");
+
+        // Open the file as a stream of bytes
+        try (InputStream in = Files.newInputStream(file)) {
+            // Buffer for reading file in 1 MB chunks
+            byte[] buffer = new byte[1024 * 1024];
+            int n;
+
+            // Read the file in chunks and update the MD5 digest
+            while ((n = in.read(buffer)) != -1) {
+                message.update(buffer, 0, n);
+            }
+            byte[] md5Bytes = message.digest();
+
+            // Convert the hash bytes into a 32-character hex string
+            StringBuilder builder = new StringBuilder();
+            for (byte b : md5Bytes) {
+                int value = b & 0xFF; 
+                if (value < 16) {
+                    builder.append(0);
+                }
+                builder.append(Integer.toHexString(value));
+            }
+            return builder.toString();
+        }
+    }
+}
