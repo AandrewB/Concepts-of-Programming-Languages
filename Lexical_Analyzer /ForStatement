@@ -1,0 +1,32 @@
+import java.util.List;
+import java.util.Map;
+
+public class ForStatement extends Statement {
+    String varName;
+    Expression startExpr;
+    Expression endExpr;
+    List<Statement> body;
+
+    public ForStatement(String varName,
+        Expression startExpr,
+        Expression endExpr,
+        List<Statement> body) {
+        this.varName = varName;
+        this.startExpr = startExpr;
+        this.endExpr = endExpr;
+        this.body = body;
+    }
+
+    @Override
+    public void execute(Map<String, Integer> memory) {
+        int start = startExpr.evaluate(memory);
+        int end = endExpr.evaluate(memory);
+
+        for (int i = start; i <= end; i++) {
+            memory.put(varName, i);
+            for (Statement s : body) {
+                s.execute(memory);
+            }
+        }
+    }
+}
