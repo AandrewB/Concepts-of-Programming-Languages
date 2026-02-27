@@ -1,0 +1,139 @@
+import java.util.HashMap;
+import java.util.Map;
+
+public class FileSystemSim {
+    private final Map<Integer, User> users = new HashMap<>();
+    private final Map<String, SharedFile> files = new HashMap<>();
+    private final EventLogger logger;
+
+    private int nextUserId = 1;
+
+    public FileSystemSim(EventLogger logger) {
+        this.logger = logger;
+    }
+
+    public User createUser(String name) {
+        User user = new User(nextUserId++, name);
+        users.put(user.getId(), user);
+        logger.log("Created user: " + user);
+        return user;
+    }
+
+    public User getUser(int id) {
+        return users.get(id);
+    }
+
+    public SharedFile createFile(String name, String content, int ownerId) {
+        User owner = users.get(ownerId);
+        if (owner == null) {
+            logger.log("FAILED to create file '" + name + "': owner ID not found");
+            return null;
+        }
+
+        SharedFile sf = new SharedFile(name, content, owner);
+        files.put(name, sf);
+        logger.log("File created: '" + name + "' by " + owner.getName());
+        return sf;
+    }
+
+    public String readFile(String fileName, int userId) {
+        SharedFile file = files.get(fileName);
+        User user = users.get(userId);
+
+        if (file == null) {
+            logger.log("READ FAILED: '" + fileName + "' does not exist");
+            return null;
+        }
+        if (user == null) {
+            logger.log("READ FAILED: user ID " + userId + " not found");
+            return null;
+        }
+
+        if (!file.hasPermission(userId, PermissionType.READ)) {
+            logger.log("READ DENIED: " + user.getName() + " does not have READ on '" + fileName + "'");
+            return null;
+        }
+
+        logger.log("READ SUCCESS: " + user.getName() + " read '" + fileName + "'");
+        return file.getContent();
+    }
+
+    public boolean writeFile(String fileName, int userId, String newContent) {
+        SharedFile file = files.get(fileName);
+        User user = users.get(userId);
+
+        if (file == null) {
+            logger.log("WRITE FAILED: file '" + fileName + "' does not exist");
+            return false;
+        }
+        if (user == null) {
+            logger.log("WRITE FAILED: user ID " + userId + " not found");
+            return false;
+        }
+
+        if (!file.hasPermission(userId, PermissionType.WRITE)) {
+            logger.log("WRITE DENIED: " + user.getName() + " does not have WRITE on '" + fileName + "'");
+            return false;
+        }
+
+        file.setContent(newContent);
+        logger.log("WRITE SUCCESS: " + user.getName() + " modified '" + fileName + "'");
+        return true;
+    }
+
+    public void changePermission(
+            String fileName,
+            int ownerId,
+            int targetUserId,
+            PermissionType perm,
+            boolean grant
+    ) {
+        SharedFile file = files.get(fileName);
+        User owner = users.get(ownerId);
+        User target = users.get(targetUserId);
+
+        if (file == null) {
+            logger.log("PERMISSION CHANGE FAILED: file '" + fileName + "' not found");
+            return;
+        }
+        if (owner == null || target == null) {
+            logger.log("PERMISSION CHANGE FAILED: invalid user ID");
+            return;
+        }
+
+        if (file.getOwner().getId() != ownerId) {
+            logger.log("PERMISSION CHANGE DENIED: " + owner.getName() +
+                    " is not the owner of '" + fileName + "'");
+            return;
+        }
+
+        if (grant) {
+            file.grantPermission(targetUserId, perm);
+            logger.log("PERMISSION GRANTED: " + owner.getName() +
+                    " gave " + perm + " to " + target.getName() +
+                    " on '" + fileName + "'");
+        } else {
+            file.revokePermission(targetUserId, perm);
+            logger.log("PERMISSION REVOKED: " + owner.getName() +
+                    " removed " + perm + " from " + target.getName() +
+                    " on '" + fileName + "'");
+        }
+    }
+
+    public void simulateConcurrentWrite(
+            String fileName,
+            int userA,
+            int userB,
+            String contentA,
+            String contentB
+    ) {
+        logger.log("CONCURRENT WRITE TEST on '" + fileName + "'");
+
+        boolean aCanWrite = writeFile(fileName, userA, contentA);
+        boolean bCanWrite = writeFile(fileName, userB, contentB);
+
+        if (aCanWrite && bCanWrite) {
+            logger.log("Conflict detected! Both users wrote to the file.");
+        }
+    }
+}
