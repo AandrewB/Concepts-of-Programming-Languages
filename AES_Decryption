@@ -1,0 +1,36 @@
+from pathlib import Path
+from Crypto.Cipher import AES
+
+def unpad_pkcs7(b: bytes) -> bytes:
+    if not b:
+        return b
+    pad = b[-1]
+    if pad < 1 or pad > 16:
+        return b
+    if b[-pad:] != bytes([pad]) * pad:
+        return b
+    return b[:-pad]
+
+def main():
+    key_path = Path("AES_key_.aes")
+    ct_path  = Path("emessage.etxt")
+
+    if not key_path.exists() or not ct_path.exists():
+        raise SystemExit("Make sure AES_key_.aes and emessage.etxt are in the same folder as this script.")
+
+    key = key_path.read_bytes()            
+    ciphertext = ct_path.read_bytes()      
+
+    iv = b'\x00' * 16
+    cipher = AES.new(key, AES.MODE_CBC, iv=iv)
+    plaintext_padded = cipher.decrypt(ciphertext)
+    plaintext = unpad_pkcs7(plaintext_padded)
+
+    print("Decrypted plaintext:\n")
+    try:
+        print(plaintext.decode('utf-8'))
+    except UnicodeDecodeError:
+        print(repr(plaintext))
+
+if __name__ == "__main__":
+    main()
