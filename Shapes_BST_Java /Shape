@@ -1,0 +1,25 @@
+package shapes;
+
+public abstract class Shape{
+    protected int id;
+    protected String name;
+
+
+public Shape (int identification, String firstname){
+id = identification;
+name = firstname;
+}
+
+public abstract double area();
+public int getId(){
+    return id;
+};
+public String name(){
+    return name;
+}
+}
+
+
+
+
+
