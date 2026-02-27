@@ -1,0 +1,47 @@
+import java.util.List;
+import java.util.Map;
+
+public class IfStatement extends Statement {
+    Expression mainCondition;
+    List<Statement> mainBlock;
+    List<Expression> elifConditions;
+    List<List<Statement>> elifBlocks;
+    List<Statement> elseBlock;  // can be null
+
+    public IfStatement(Expression mainCondition,
+        List<Statement> mainBlock,
+        List<Expression> elifConditions,
+        List<List<Statement>> elifBlocks,
+        List<Statement> elseBlock) {
+        this.mainCondition = mainCondition;
+        this.mainBlock = mainBlock;
+        this.elifConditions = elifConditions;
+        this.elifBlocks = elifBlocks;
+        this.elseBlock = elseBlock;
+    }
+
+    @Override
+    public void execute(Map<String, Integer> memory) {
+        if (mainCondition.evaluate(memory) != 0) {
+            for (Statement s : mainBlock) {
+                s.execute(memory);
+            }
+            return;
+        }
+
+        for (int i = 0; i < elifConditions.size(); i++) {
+            if (elifConditions.get(i).evaluate(memory) != 0) {
+                for (Statement s : elifBlocks.get(i)) {
+                    s.execute(memory);
+                }
+                return;
+            }
+        }
+
+        if (elseBlock != null) {
+            for (Statement s : elseBlock) {
+                s.execute(memory);
+            }
+        }
+    }
+}
