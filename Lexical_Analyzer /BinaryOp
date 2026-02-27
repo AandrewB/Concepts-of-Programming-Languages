@@ -1,0 +1,39 @@
+import java.util.Map;
+
+public class BinaryOp implements Expression {
+    Expression left;
+    Expression right;
+    String operator;
+
+    public BinaryOp(Expression l, String op, Expression r){
+        left = l;
+        right = r;
+        operator = op;
+    }
+
+    public int evaluate(Map<String, Integer> memory){
+        int leftValue = left.evaluate(memory);
+        int rightValue = right.evaluate(memory);
+
+        if(operator.equals("+")){
+            return leftValue + rightValue;
+        }
+
+        else if (operator.equals("-")) {
+            return leftValue - rightValue;
+        }
+
+        else if (operator.equals("*")){
+            return leftValue * rightValue;
+        }
+
+        else if (operator.equals("/") && rightValue != 0){
+            return leftValue / rightValue;
+        }
+        else if (operator.equals("/") && rightValue == 0){
+            throw new ArithmeticException("Divide by zero");
+        }
+        
+        throw new Error("invalid operator" + operator);
+    }
+}
