@@ -1,0 +1,25 @@
+public class Token {
+    TokenType type;
+    String lexeme;
+    int row, col;
+
+    public int getCol() {
+        return col;
+    }
+    public String getLexeme() {
+        return lexeme;
+    }
+    public int getRow() {
+        return row;
+    }public TokenType getType() {
+        return type;
+    }
+
+    public Token(TokenType ty, String lex, int rows, int column){
+         this.type = ty;
+         this.lexeme = lex;
+         this.row = rows;
+         this.col = column;
+    
+    }
+}
