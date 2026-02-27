@@ -1,0 +1,65 @@
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
+
+enum PermissionType {
+    READ,
+    WRITE
+}
+
+public class SharedFile {
+    private final String name;
+    private String content;
+    private final User owner;
+
+    private final Map<Integer, EnumSet<PermissionType>> acl = new HashMap<>();
+
+    public SharedFile(String name, String content, User owner) {
+        this.name = name;
+        this.content = content;
+        this.owner = owner;
+
+        grantPermission(owner.getId(), PermissionType.READ);
+        grantPermission(owner.getId(), PermissionType.WRITE);
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String newContent) {
+        this.content = newContent;
+    }
+
+    public User getOwner() {
+        return owner;
+    }
+
+    public boolean hasPermission(int userId, PermissionType perm) {
+        EnumSet<PermissionType> perms = acl.get(userId);
+        return perms != null && perms.contains(perm);
+    }
+
+    public void grantPermission(int userId, PermissionType perm) {
+        EnumSet<PermissionType> perms = acl.get(userId);
+        if (perms == null) {
+            perms = EnumSet.noneOf(PermissionType.class);
+            acl.put(userId, perms);
+        }
+        perms.add(perm);
+    }
+
+    public void revokePermission(int userId, PermissionType perm) {
+        EnumSet<PermissionType> perms = acl.get(userId);
+        if (perms != null) {
+            perms.remove(perm);
+            if (perms.isEmpty()) {
+                acl.remove(userId);
+            }
+        }
+    }
+}
