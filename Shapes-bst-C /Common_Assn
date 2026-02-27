@@ -1,0 +1,17 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "shape_io.h"
+
+int main (int argc, char** argv)
+{
+  if (argc != 2)
+  {
+    fprintf (stderr, "expected file name command line argument\n");
+    exit(0);
+  }
+  bst t = read_bst_from_file (argv[1]);
+  inorder (t);
+  free_bst(t);
+  return EXIT_SUCCESS;
+}
