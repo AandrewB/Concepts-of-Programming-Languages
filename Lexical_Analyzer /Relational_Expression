@@ -1,0 +1,64 @@
+import java.util.Map;
+
+public class RelationalExpression implements Expression{
+    Expression leftVal;
+    Expression rightVal;
+    TokenType opType;
+
+   public RelationalExpression(Expression leftVal, Expression rightVal, TokenType opType){
+    this.leftVal = leftVal;
+    this.rightVal = rightVal;
+    this.opType = opType;
+   }
+
+    @Override
+    public int evaluate(Map<String, Integer> memory) {
+        int left = leftVal.evaluate(memory);
+        int right =rightVal.evaluate(memory);
+
+        if (opType == TokenType.LT){
+            if (left < right) {
+                return 1;
+            }
+            else return 0;
+        }
+
+        if (opType == TokenType.LE) {
+            if (left <= right) {
+                return 1;
+            }
+            else return 0;
+        }
+
+        if (opType == TokenType.GT) {
+            if (left > right) {
+                return 1;
+            }
+            else return 0;
+        }
+
+        if (opType == TokenType.GE) {
+            if (left >= right) {
+                return 1;
+            }
+            else return 0;
+        }
+
+        if (opType == TokenType.EQ) {
+            if (left == right) {
+                return 1;
+            }
+            else return 0;
+        }
+
+        if (opType == TokenType.NE) {
+            if (left != right) {
+                return 1;
+            }
+            else return 0;
+        }
+
+        throw new IllegalArgumentException();
+        
+    }
+}
