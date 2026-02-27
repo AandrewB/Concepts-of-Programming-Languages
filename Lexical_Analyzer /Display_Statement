@@ -1,0 +1,21 @@
+import java.util.Map;
+
+public class DisplayStatement extends Statement {
+    String variableName;
+
+    public DisplayStatement(String variableName){
+        this.variableName = variableName;
+    }
+
+    @Override
+    public void execute(Map<String, Integer> memory) {
+         int value = 0;
+        
+            // If the variable hasn't been assigned, treat it as 0
+            if (memory.containsKey(variableName)) {
+                value = memory.get(variableName);
+            }
+        
+            System.out.println(value);
+    }
+}
