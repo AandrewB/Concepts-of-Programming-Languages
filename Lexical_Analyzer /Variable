@@ -1,0 +1,20 @@
+import java.util.Map;
+
+public class Variable implements Expression {
+    private String name;
+
+    public Variable(String varName) {
+        this.name = varName;
+    }
+
+    public int evaluate(Map<String, Integer> memory) {
+        if (!memory.containsKey(name)) {
+            throw new IllegalArgumentException("Variable " + name + " not initialized");
+        }
+        return memory.get(name);
+    }
+
+    public String getName() {
+        return name;
+    }
+}
