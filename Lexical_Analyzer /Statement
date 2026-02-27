@@ -1,0 +1,6 @@
+import java.util.Map;
+
+public abstract class Statement {
+
+    public abstract void execute(Map<String,Integer> memory);
+}
