@@ -1,0 +1,23 @@
+package shapes;
+
+public class Triangle extends Shape {
+    int a, b, c;
+    public Triangle(int identity, String firstname, int first, int second, int third){
+        super(identity, firstname);
+        if(first <= 0 || second <= 0 || third <= 0){
+            throw new IllegalArgumentException("all sides must be > 0");
+        }
+        else if(first + second <= third || first + third <= second || second + third <= first){
+            throw new IllegalArgumentException("invalid triangle sides");
+        }
+        a = first;
+        b = second;
+        c = third;
+    }
+    @Override
+    public double area() {
+        double s = (a + b + c) / 2.0;
+        double area = Math.sqrt(s * (s -a) * (s - b) * (s - c));
+        return area;
+    }
+}
