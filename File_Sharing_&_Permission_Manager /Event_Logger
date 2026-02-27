@@ -1,0 +1,25 @@
+import java.io.FileWriter;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+public class EventLogger {
+    private final String logFileName;
+    private final DateTimeFormatter formatter =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    public EventLogger(String logFileName) {
+        this.logFileName = logFileName;
+    }
+
+    public void log(String message) {
+        String timestamp = LocalDateTime.now().format(formatter);
+        String line = "[" + timestamp + "] " + message + System.lineSeparator();
+
+        try (FileWriter writer = new FileWriter(logFileName, true)) {
+            writer.write(line);
+        } catch (IOException e) {
+            System.err.println("Failed to write to log: " + e.getMessage());
+        }
+    }
+}
