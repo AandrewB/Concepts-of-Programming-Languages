@@ -1,0 +1,20 @@
+from shapes.parser import parse_file
+from shapes.order import area, perimeter
+from shapes.bst import BST
+
+shapes = parse_file("figures.txt")
+
+area_tree = BST(area)
+peri_tree = BST(perimeter)
+
+for s in shapes:
+    area_tree.insert(s)
+    peri_tree.insert(s)
+
+print("Shapes sorted by area: ")
+for s in area_tree.inorder():
+    print(s, s.area())
+
+print("\nShapes sorted by perimeter: ")
+for s in peri_tree.inorder():
+    print(s, s.perimeter())
