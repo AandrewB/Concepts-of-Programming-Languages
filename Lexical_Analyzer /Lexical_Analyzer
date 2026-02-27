@@ -1,0 +1,275 @@
+import java.util.Stack;
+public class LexicalAnalyzer {
+    Stack<Integer> indentStack = new Stack<>();
+    boolean atLineStart = true;
+    int pendingDedents = 0;
+    String source;
+    int index, row, col;
+
+    public LexicalAnalyzer(String input){
+        source = input;
+        index = 0;
+        row = 1;
+        col = 1; 
+        indentStack.push(0);
+    }
+    public Token getToken() {
+    if (pendingDedents > 0) {
+        pendingDedents--;
+        return new Token(TokenType.DEDENT, "", row, col);
+    }
+    while (index < source.length()) {
+        char c = source.charAt(index);
+
+        if (c == ' ') {
+            index++;
+            col++;
+        } else if (c == '\r') {
+            index++;
+        } else if (c == '\n') {
+            int currentRow = row;
+            int currentCol = col;
+            index++;
+            row++;
+            col = 1;
+            atLineStart = true;
+            return new Token(TokenType.EOL, "\n", currentRow, currentCol);
+        } else {
+            break;
+        }
+    }
+    if (atLineStart) {
+        int tabCount = 0;
+        int startCol = col;
+
+        while (index < source.length() && source.charAt(index) == '\t') {
+            index++;
+            col++;
+            tabCount++;
+        }
+
+        atLineStart = false;
+
+        int currentIndent = indentStack.peek();
+        if (tabCount > currentIndent) {
+            indentStack.push(tabCount);
+            return new Token(TokenType.INDENT, "", row, startCol);
+        } else if (tabCount < currentIndent) {
+            while (!indentStack.isEmpty() && indentStack.peek() > tabCount) {
+                indentStack.pop();
+                pendingDedents++;
+            }
+            if (pendingDedents > 0) {
+                pendingDedents--;
+                return new Token(TokenType.DEDENT, "", row, startCol);
+            }
+        }
+    }
+    if (index >= source.length()) {
+        return new Token(TokenType.EOS, "", row, col);
+    }
+    char currentChar = source.charAt(index);
+    int currentCol = col;
+
+        if (currentChar == '+') {
+            Token token = new Token(TokenType.ADD, "+", row , currentCol);
+            index++;
+            col++;
+            return token;
+        }
+
+        else if (currentChar == '-') {
+            Token token = new Token(TokenType.SUB, "-", row , currentCol);
+            index++;
+            col++;
+            return token;
+        }
+
+        else if (currentChar == '*') {
+            Token token = new Token(TokenType.MUL, "*", row , currentCol);
+            index++;
+            col++;
+            return token;
+        }
+
+        else if (currentChar == '/') {
+            if (index + 1 < source.length()) {
+                char nextChar = source.charAt(index + 1);
+
+                if (nextChar == '=') {
+                Token token = new Token(TokenType.NE, "/=", row, currentCol);
+                index += 2;
+                col += 2;
+                return token;
+            }
+        }
+            Token token = new Token(TokenType.DIV, "/", row , currentCol);
+            index++;
+            col++;
+            return token;
+        }
+
+        else if (currentChar == '<'){
+            if (index + 1 < source.length()){
+                char nextChar = source.charAt(index + 1);
+                 
+                if (nextChar == '='){
+                    Token token = new Token(TokenType.LE, "<=", row, currentCol);
+                    index += 2;
+                    col += 2;
+                    return token;
+                }
+            }
+
+                Token token = new Token(TokenType.LT, "<", row, currentCol);
+                    index++;
+                    col++;
+                    return token;
+            
+        }
+
+        else if (currentChar == '>'){
+            if (index + 1 < source.length()){
+                char nextChar = source.charAt(index + 1);
+                 
+                if (nextChar == '='){
+                    Token token = new Token(TokenType.GE, ">=", row, currentCol);
+                    index += 2;
+                    col += 2;
+                    return token;
+                }
+            }
+                Token token = new Token(TokenType.GT, ">", row, currentCol);
+                    index++;
+                    col++;
+                    return token;
+            
+        }
+
+        else if (currentChar == '=') {
+            Token token = new Token(TokenType.EQ, "=", row, currentCol);
+            index++;
+            col++;
+            return token;
+        }
+
+        else if (currentChar == '.'){
+            if (index + 1 < source.length()){
+                char nextChar = source.charAt(index + 1);
+                 
+                if (nextChar == '.'){
+                    Token token = new Token(TokenType.DOT_DOT, "..", row, currentCol);
+                    index += 2;
+                    col += 2;
+                    return token;
+                }
+             }    
+                throw new IllegalArgumentException();
+        }
+
+        else if (currentChar == '(') {
+            Token token = new Token(TokenType.LPAREN, "(", row , currentCol);
+            index++;
+            col++;
+            return token;
+        }
+
+        else if (currentChar == ')') {
+            Token token = new Token(TokenType.RPAREN, ")", row , currentCol);
+            index++;
+            col++;
+            return token;
+        }
+
+        else if (currentChar == ':') {
+            if (index + 1 < source.length() && source.charAt(index + 1) == '=') {
+                Token token = new Token(TokenType.ASSIGN, ":=", row, currentCol);
+                index += 2;
+                col += 2;
+                return token;
+                
+            } else {
+               Token token = new Token(TokenType.COLON, ":", row, currentCol);
+               index += 1;
+               col += 1;
+               return token;
+            }
+        }
+
+
+        if (Character.isLetter(currentChar)){
+            int firstIndex = index;
+            int currentvarCol = col;
+            int currentvarRow = row;
+            TokenType selectedType;
+
+            while (index < source.length() && (Character.isLetter(source.charAt(index)) || Character.isDigit(source.charAt(index)))) {
+                index++;
+                col++;
+            }
+
+            String substringIndex = source.substring(firstIndex, index);
+            String lowercase = substringIndex.toLowerCase();
+
+            if (lowercase.equals( "let")){
+                selectedType = TokenType.LET;
+
+            }
+
+            else if (lowercase.equals("display")) {
+                selectedType = TokenType.DISPLAY;
+            }
+
+            else if (lowercase.equals("input")) {
+                selectedType = TokenType.INPUT;
+            }
+            
+            else if (lowercase.equals("if")){
+                selectedType = TokenType.IF;
+            }
+
+            else if (lowercase.equals("elif")){
+                selectedType = TokenType.ELIF;
+            }
+
+            else if (lowercase.equals("else")){
+                selectedType = TokenType.ELSE;
+            }
+
+            else if (lowercase.equals("while")){
+                selectedType = TokenType.WHILE;
+            }
+
+            else if (lowercase.equals("for")){
+                selectedType = TokenType.FOR;
+            }
+
+            else if (lowercase.equals("in")){
+                selectedType = TokenType.IN;
+            }
+
+            else {
+                selectedType = TokenType.ID;
+            }
+            
+            Token charToken = new Token(selectedType, substringIndex, currentvarRow, currentvarCol);
+            return charToken;
+
+        }
+
+        else if (Character.isDigit(currentChar)){
+            int startIndex = index;
+            int currentIntCol = col;
+            while(index < source.length() && Character.isDigit(source.charAt(index))){
+                index++;
+                col++;
+            }
+            String substringIndex = source.substring(startIndex, index);
+            Token intToken = new Token(TokenType.INT_LIT, substringIndex, row, currentIntCol);
+            return intToken;
+        }
+
+        throw new IllegalArgumentException("Lexical error: unexpected character " + currentChar + "' at row " + row + ", col " + currentCol);
+    }
+}
+ 
