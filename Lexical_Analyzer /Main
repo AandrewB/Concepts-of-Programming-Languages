@@ -1,0 +1,22 @@
+public class Main {
+    public static void main(String[] args) {
+        
+    String input = "let x := 10\n" +
+            "let a := 1\n" +
+            "let b := 2\n" +
+            "if x < 5:\n" +
+            "\tdisplay a\n" +
+            "else:\n" +
+            "\tdisplay b\n";
+    LexicalAnalyzer analyze = new LexicalAnalyzer(input);
+    Parser parser = new Parser(analyze);
+    try {
+        Program program = parser.parseProgram();
+        program.execute();
+    }
+    catch (IllegalArgumentException e) {
+        System.out.println("REJECT: " + e.getMessage());
+    }
+  }
+}
+    
