@@ -1,0 +1,21 @@
+package shapes;
+
+public  class Circle extends Shape{
+    protected double radius;
+
+    public Circle(int identity, String firstname, double rad){
+
+    super(identity, firstname);
+        if (rad <= 0){
+            throw new IllegalArgumentException();
+        }
+        radius = rad;
+    
+    }
+    @Override
+    public double area() {
+        return Math.PI * radius * radius;
+    }
+
+
+}
