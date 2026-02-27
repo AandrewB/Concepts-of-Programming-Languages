@@ -1,0 +1,13 @@
+import java.util.Map;
+
+public class UnaryMinus implements Expression{
+    Expression child;
+    public UnaryMinus(Expression newChild){
+        child = newChild;
+    }
+    public int evaluate(Map<String, Integer> memory){
+        
+        return - child.evaluate(memory);
+
+    }
+}
