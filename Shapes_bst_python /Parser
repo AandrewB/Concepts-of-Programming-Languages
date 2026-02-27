@@ -1,0 +1,53 @@
+from shapes.model import Circle, Rectangle, Triangle
+
+def parse_file(path):
+    result = []
+    with open(path, "r") as file:
+        for line in file:
+            stripped =(line.strip())
+            if len(stripped) == 0:
+                continue
+        
+            elif stripped.startswith("#"):
+                continue
+
+            else:
+                tokens = stripped.split()
+                shape = tokens[0].lower()
+                numberString = tokens[1:]
+                try:
+                    numberString =[float(x) for x in tokens[1:]]
+                except ValueError:
+                    continue
+
+                if shape == "circle" and len(numberString) == 1:
+                    try:
+                        circle = Circle(radius = numberString[0])
+                        result.append(circle)
+                    except ValueError:
+                        continue
+
+                elif shape == "rectangle" and len(numberString) == 2:
+                    try: 
+                        rectangle = Rectangle(width = numberString[0], height = numberString[1])
+                        result.append(rectangle)
+                    except ValueError:
+                        continue
+
+                elif shape == "triangle" and len(numberString) == 3:
+                    try:
+                        triangle = Triangle(a = numberString[0], b = numberString[1], c = numberString[2])
+                        result.append(triangle)
+                    except ValueError:
+                        continue
+            
+                else:
+                    continue
+    return result
+
+                    
+
+
+
+
+    
